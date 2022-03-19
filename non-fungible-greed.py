@@ -40,12 +40,12 @@ while True:
         purchases = [0 for _ in range(10)]
         for i, move in enumerate(yesterday):
             if i != my_index:
-                for coin in move:
+                for coin in range(len(move)):
                     purchases[coin] += move[coin]
         
         # 2. repeatedly select the coin with the highest expected value
         for _ in range(100):
-            expected_benefit = [i/purchases[i] for i in range(10)]
+            expected_benefit = [i/(purchases[i]+1) for i in range(10)]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
             purchases[to_buy] += 1
