@@ -32,7 +32,7 @@ while True:
     buys = [0 for _ in range(10)]
     if day == 0:
         # an arbitrarily selected first day strategy
-        buys = [0,0,0,0,0,0,0,0,0,100]
+        buys = [10 for _ in range(10)]
     else:
         # the actual strategy
 
