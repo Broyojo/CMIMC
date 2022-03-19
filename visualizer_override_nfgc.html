@@ -1,0 +1,170 @@
+<!-- inside the cmimc visualizer page for a round, create a local response-type ovveride for the file 1058603/Frames/vizualizer (nfgc) and paste this file -->
+<!-- it draws the program's purchases and the total purchases to quantify the bar chart -->
+
+<head>
+<style>
+html, body {
+    overflow: hidden;
+}
+
+#main_canvas {
+    position:fixed;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+</style>
+</head>
+<body>
+
+<canvas id="main_canvas"> </canvas>
+<script>
+hist = null;
+scores = [];
+canvas = null;
+ctx = null;
+whoami = null;
+time = null;
+
+vp_x = 0;
+vp_y = 0;
+vp_s = 10;
+
+function render_frame() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    let day = hist[time];
+    let totals = new Array(10).fill(0);
+    day.forEach((player) => {
+        player.forEach((bought, ind) => totals[ind] += bought);
+    });
+    let highest = Math.max(...totals);
+    if (highest == 0) highest = 1;
+
+    let width = 7;
+    for (let i = 0; i < 10; i++) {
+        let h = totals[i] / highest * 100;
+        ctx.fillStyle = "red";
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        ctx.textBaseline = "top";
+        ctx.fillRect((i*width - vp_x) * vp_s, canvas.height + (-h - vp_y) * vp_s, vp_s * width, vp_s * h);
+        ctx.strokeRect((i*width - vp_x) * vp_s, canvas.height + (-h - vp_y) * vp_s, vp_s * width, vp_s * h);
+        ctx.fillStyle = 'black';
+        ctx.font = '48px monospace';
+        ctx.fillText(i+1, (i*width + width/10 - vp_x) * vp_s, canvas.height + (-vp_y + 1) * vp_s, vp_s * width * 0.8);
+    }
+
+    for (let i = 0; i < 10; i++) {
+        let h = day[whoami][i] / highest * 100;
+        ctx.fillStyle = "green";
+        ctx.strokeStyle = 'black';
+        ctx.lineWidth = 1;
+        ctx.fillRect((i*width - vp_x) * vp_s, canvas.height + (-h - vp_y) * vp_s, vp_s * width, vp_s * h);
+        ctx.strokeRect((i*width - vp_x) * vp_s, canvas.height + (-h - vp_y) * vp_s, vp_s * width, vp_s * h);
+        ctx.fillStyle = "black";
+        ctx.font = String(Math.round(2*vp_s)) +'px serif';
+        ctx.fillText(String(day[whoami][i]) + "/" + String(totals[i]), (i*width - vp_x) * vp_s, canvas.height + (-h - vp_y - 2) * vp_s);
+    }
+    
+    ctx.fillStyle = 'black';
+    ctx.font = '20px monospace';
+    ctx.fillText( `DAY ${time}`, 0, 0);
+    let score = scores[time];
+    
+    score.forEach((tuple, ind) => {
+        let team = "Team";
+        let player = tuple[1];
+        let value = tuple[0];
+        ctx.fillStyle = 'black';
+        ctx.font = '20px monospace';
+        if (player == whoami) {
+            ctx.fillStyle = 'green';
+            ctx.font = 'bold 20px monospace';
+        }
+        ctx.fillText( `${value.toFixed(2)}, Team ${player}`, 0, 20 * ind + 20);
+    });
+    
+}
+
+function load_visualizer(history_, whoami_) {
+    canvas = document.getElementById('main_canvas');
+    ctx = canvas.getContext('2d');
+    hist = history_
+    whoami = whoami_
+    if (whoami === null) whoami = 1;
+    whoami -= 1
+    time = 0
+    hist.forEach((day, cur) => {
+        scores.push([]);
+        let totals = new Array(10).fill(0);
+        day.forEach((player) => {
+            player.forEach((bought, ind) => totals[ind] += bought);
+        });
+        day.forEach((player, who) => {
+            let playerscore = 0;
+            if (cur > 0) playerscore = scores[cur - 1][who][0];
+            player.forEach((bought, ind) => {
+                if (totals[ind] > 0) playerscore += (ind + 1) * bought / totals[ind];
+            });
+            scores[cur].push([playerscore, who]);
+        });
+    });
+    hist.forEach((day, cur) => {
+        scores[cur].sort((a, b) => b[0] - a[0]);
+    });
+    render_frame();
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.code == "ArrowRight") time += 1;
+    else if (e.code == "ArrowLeft") time -= 1;
+    else if (e.code == "ArrowDown" && vp_s > 2) vp_s -= 2;
+    else if (e.code == "ArrowUp") vp_s += 2;
+    else return;
+
+
+    if (time < 0) time = 0;
+    else if (time >= hist.length) time = hist.length - 1
+
+    render_frame();
+});
+
+is_dragging = false;
+last_mouse_x = 0;
+last_mouse_y = 0;
+
+document.addEventListener('mousedown', function(e) {
+    last_mouse_x = e.clientX;
+    last_mouse_y = e.clientY;
+    is_dragging = true;
+});
+
+document.addEventListener('mouseup', function(e) {
+    is_dragging = false;
+});
+
+document.addEventListener('mousemove', function(e) {
+    if (is_dragging) {
+        vp_x += (last_mouse_x - e.clientX) / vp_s;
+        vp_y += (last_mouse_y - e.clientY) / vp_s;
+
+        last_mouse_x = e.clientX;
+        last_mouse_y = e.clientY;
+        render_frame();
+    }
+});
+</script>
+
+</body>
+<script>
+/* this code is actually used to recieve the history from the iframe on the website */
+window.addEventListener('message', function(event) {
+    load_visualizer(event.data.history, event.data.whoami)
+}, false);
+</script>
