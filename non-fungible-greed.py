@@ -1,4 +1,5 @@
 import json
+from math import sqrt
 from sys import stderr
 
 # INPUT FORMAT (per turn):
@@ -46,7 +47,7 @@ class Strategy():
             
             for coin_i in range(len(move)):
                 dif = move[coin_i] - predicted_move[coin_i]
-                mse += dif**2
+                mse += dif**2 * sqrt(day + 1) # weight the later days more to compensate for addaptive algorithms
         mse /= 10 * len(history)
     
         return mse
