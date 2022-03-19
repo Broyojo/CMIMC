@@ -64,7 +64,7 @@ class GreedyOneAhead(Strategy):
         
         # 2. repeatedly select the coin with the highest expected value
         for _ in range(100):
-            expected_benefit = [ (i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (purchases[i]+buys[i])) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
+            expected_benefit = [ ((i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (purchases[i]+buys[i]))) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
         
@@ -86,7 +86,7 @@ class PickLeast(Strategy):
                 for coin in range(len(move)):
                     purchases[coin] += move[coin]
         
-        # 2. find the least purchased coin
+        # 2. find the least purchased coin and buy all of it
         least_i = purchases.index(min(purchases))
         buys[least_i] = 100
 
@@ -120,8 +120,13 @@ while True:
     my_index = _data["my_index"]
     
     if day == 0:
-        # an arbitrary first day strategy
-        buys = [10 for _ in range(10)]
+        # an arbitrary first day strategy based on typical first days (grabbed from replays)
+        buys = [0 for _ in range(10)]
+        purchases = [88,100,95,145,223,280,307,288,319,446]
+        for _ in range(100):
+            expected_benefit = [ ((i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (purchases[i]+buys[i]))) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
+            to_buy = expected_benefit.index(max(expected_benefit))
+            buys[to_buy] += 1
         buy(buys)
         day += 1
     else:
