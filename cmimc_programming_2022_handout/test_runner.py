@@ -30,4 +30,4 @@ from graders import MotPE, NFGC, Help, TNTRun
 
 #TNTRun().test(sources=["bots/tntrun_starter.py"]*12, name="starter_test", save_replay=True, record_logs=False)
 
-NFGC().test(sources=["../non-fungible-greed.py"]*12, name="starter_test", save_replay=True, record_logs=False)
+NFGC().test(sources=["bots/nfgc_starter.py"]*11 + ["../non-fungible-greed.py"], name="starter_test", save_replay=True, record_logs=False)

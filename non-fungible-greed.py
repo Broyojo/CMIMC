@@ -63,10 +63,9 @@ class GreedyOneAhead(Strategy):
         
         # 2. repeatedly select the coin with the highest expected value
         for _ in range(100):
-            expected_benefit = [i/(purchases[i]+1) for i in range(10)]
+            expected_benefit = [ (i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (purchases[i]+buys[i])) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
-            purchases[to_buy] += 1
         
         return buys
 
@@ -96,14 +95,17 @@ strategies = [GreedyOneAhead(), NoChange(), PickLeast()]
 def buy(buys):
     print(json.dumps({"buys": buys}))
 
-def classify_opponents(history, scores):
+def classify_opponents(history, scores, my_index):
     classifications = []
     for opponent_i in range(len(history[0])):
-        strategy_scores = []
-        for strategy in strategies:
-            strategy_scores.append(strategy.agrees_with(history, scores, opponent_i))
-        best = strategy_scores.index(min(strategy_scores))
-        classifications.append(strategies[best])
+        if opponent_i == my_index:
+            classifications.append(None)
+        else:
+            strategy_scores = []
+            for strategy in strategies:
+                strategy_scores.append(strategy.agrees_with(history, scores, opponent_i))
+            best = strategy_scores.index(min(strategy_scores))
+            classifications.append(strategies[best])
     return classifications
 
 history = []
@@ -124,16 +126,21 @@ while True:
     else:
         # attempt to classify the opponent's behavior
         history.append(yesterday)
-        opponent_strategies = classify_opponents(history, scores)
+        opponent_strategies = classify_opponents(history, scores, my_index)
         
         # simulate opponent's moves
         today_prediction = yesterday
         for opponent_i in range(len(today_prediction)):
-            opponent_strat = opponent_strategies[opponent_i]
-            today_prediction[opponent_i] = opponent_strat.make_purchases(yesterday, scores, opponent_i)
+            if opponent_i != my_index:
+                opponent_strat = opponent_strategies[opponent_i]
+                print(f"opponent {opponent_i+1} will probably buy {opponent_strat.make_purchases(yesterday, scores, opponent_i)}", file = stderr)
+                today_prediction[opponent_i] = opponent_strat.make_purchases(yesterday, scores, opponent_i)
         
         # buy coins based on opponent's moves
         buys = GreedyOneAhead().make_purchases(today_prediction, scores, my_index)
+        print(f"I will buy {buys}", file = stderr)
         
         buy(buys)
         day += 1
+    
+    if day == 30: print("final score (real)", scores[my_index], file = stderr)
