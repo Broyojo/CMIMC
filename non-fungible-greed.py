@@ -75,7 +75,24 @@ class NoChange(Strategy):
         buys = yesterday[self_index]
         return buys
 
-strategies = [GreedyOneAhead(), NoChange()]
+class PickLeast(Strategy):
+    def make_purchases(self, yesterday, scores, self_index):
+        buys = [0 for _ in range(10)]
+        
+        # 1. aggregate a list of how much each coin was purchased
+        purchases = [0 for _ in range(10)]
+        for i, move in enumerate(yesterday):
+            if i != self_index:
+                for coin in range(len(move)):
+                    purchases[coin] += move[coin]
+        
+        # 2. find the least purchased coin
+        least_i = purchases.index(min(purchases))
+        buys[least_i] = 100
+
+        return buys
+
+strategies = [GreedyOneAhead(), NoChange(), PickLeast()]
 def buy(buys):
     print(json.dumps({"buys": buys}))
 
