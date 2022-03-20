@@ -1,6 +1,7 @@
 from local_test_framework import AIGrader
 import copy
 
+
 class TNTRun(AIGrader):
     name = "tntrun"
 
@@ -15,7 +16,7 @@ class TNTRun(AIGrader):
         size = 25
         board = [[1 for _ in range(size)] for _ in range(size)]
         grace_moves_left = 6
-        pos = [{ 'i': 12, 'j': 12, 'alive': True } for p in players]
+        pos = [{'i': 12, 'j': 12, 'alive': True} for p in players]
         summary = [0 for p in players]
         history = []
 
@@ -30,11 +31,14 @@ class TNTRun(AIGrader):
             }
             history.append(copy.deepcopy(state))
             for p in pos:
-                if not p['alive']: continue
+                if not p['alive']:
+                    continue
                 changing = True
-                if not grace_moves_left: board[p['i']][p['j']] = 0
-            for i,p in enumerate(players):
-                if not pos[i]['alive']: continue
+                if not grace_moves_left:
+                    board[p['i']][p['j']] = 0
+            for i, p in enumerate(players):
+                if not pos[i]['alive']:
+                    continue
                 p.write({**state, 'my_index': i})
                 newi, newj = pos[i]['i'], pos[i]['j']
                 try:
@@ -54,7 +58,8 @@ class TNTRun(AIGrader):
                 if not board[newi][newj]:
                     summary[i] = move_number
                     pos[i]['alive'] = False
-            if grace_moves_left: grace_moves_left -= 1
+            if grace_moves_left:
+                grace_moves_left -= 1
             move_number += 1
         return {
             'history': history,

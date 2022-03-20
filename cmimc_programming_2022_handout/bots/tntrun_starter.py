@@ -22,6 +22,8 @@ import random
         at most 2 from your previous coordinates.
 '''
 # Function for handling output
+
+
 def output(i, j):
     print(json.dumps({"i": i, "j": j}))
 
@@ -29,7 +31,7 @@ def output(i, j):
 # You can store globals outside of the main loop
 my_history = []
 size = 25
-print("example print", file = sys.stderr)
+print("example print", file=sys.stderr)
 
 while True:
     # Fetches input from grader (no need to edit)
@@ -40,14 +42,13 @@ while True:
     grace_moves_left = _data["grace_moves_left"]
     # End input
 
-    
     ## REPLACE STRATEGY BELOW ##
-    
+
     # Sample strategy (random)
     me = players[my_index]
     me_i, me_j = me["i"], me["j"]
     my_history.append((me_i, me_j))
-    
+
     new_i, new_j = -1, -1
     while not (0 <= new_i < size and 0 <= new_j < size):
         di, dj = random.randint(-2, 2), random.randint(-2, 2)
