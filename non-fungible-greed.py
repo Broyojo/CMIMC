@@ -153,7 +153,7 @@ while True:
     if day == 0:
         # an arbitrary first day strategy based on typical first days (grabbed from replays)
         buys = [0 for _ in range(10)]
-        purchases = [88, 100, 95, 145, 223, 280, 307, 288, 319, 446]
+        purchases = [53 * (x+1) for x in range(10)]
         for _ in range(100):
             expected_benefit = [((i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (
                 purchases[i]+buys[i]))) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
