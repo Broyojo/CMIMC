@@ -53,6 +53,7 @@ memory = {}
 
 
 def total_expected_reward(i, j, layers):
+    print(i, j, layers, file=sys.stderr)
     if layers == 0:
         return 0
     if (i, j) in memory:
@@ -63,10 +64,17 @@ def total_expected_reward(i, j, layers):
             new_i = i + di
             new_j = j + dj
 
-            valid_counts = count_valid_neighbors(new_i, new_j)
+            valid_counts = count_valid_neighbors(
+                new_i, new_j)
 
-            memory[(i, j)] = valid_counts
-            return valid_counts
+            if valid_counts == 0:
+                return 0
+
+            reward = valid_counts + \
+                total_expected_reward(new_i, new_j, layers - 1)
+
+            memory[(i, j)] = reward
+            return reward
 
 
 def total_safe_layers(i, j, layers, initial_layers):
@@ -93,13 +101,14 @@ def get_move(num_layers):
             new_j = my_j + dj
             if is_valid_tile(new_i, new_j):
                 moves.append(
-                    (new_i, new_j, total_expected_reward(new_i, new_j, layers=1)))
-
-    # if grace_moves_left > 0:
-    #     new_i = my_i - 2
-    #     new_j = my_j + 2
-    #     if (new_i, new_j) in moves:
-    #         return (new_i, new_j)
+                    (new_i, new_j, total_expected_reward(new_i, new_j, layers=10)))
+    print(total_safe_layers())
+    if grace_moves_left > 0:
+        new_i = my_i - 2
+        new_j = my_j + 2
+        for move in moves:
+            if move[0] == new_i and move[1] == new_j:
+                return (new_i, new_j)
 
     if len(moves) == 0:
         return (my_i, my_j)
