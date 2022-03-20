@@ -83,13 +83,17 @@ class NoChange(Strategy):
 
 
 class Taylor(Strategy):
+    
+    def __init__(self, terms):
+        self.n_terms = terms
+    
     def make_purchases(self, yesterday, scores, self_index):
         # 1. compute a newton series (Taylor Series but discrete) for every coin
         prediction = []
         for coin_i in range(10):
             # 1a. compute the backward finite difference derivatives (https://en.wikipedia.org/wiki/Finite_difference)
             derivatives = [[historic_sums[i][coin_i] for i in range(day)]]
-            if len(derivatives[0]) > 4:
+            if len(derivatives[0]) > self.n_terms + 1:
                 derivatives[0] = derivatives[0][-4:]
             while len(derivatives[-1]) != 1:
                 derivatives.append([derivatives[-1][i+1] - derivatives[-1][i] for i in range(len(derivatives[-1]) - 1)])
@@ -116,8 +120,7 @@ class Taylor(Strategy):
         
         return buys
 
-
-strategies = [GreedyOneAhead(), NoChange(), Taylor()]
+strategies = [GreedyOneAhead(), NoChange(), Taylor(2)]
 
 
 def buy(buys):
