@@ -33,4 +33,4 @@ args = sys.argv
 TNTRun().test(sources=[args[1]]*12,
               name="starter_test", save_replay=True, record_logs=True)
 
-# NFGC().test(sources=["../non-fungible-greed.py"]*12, name="starter_test", save_replay=True, record_logs=False)
+# NFGC().test(sources=["bots/nfgc_starter.py"]*29 + ["../non-fungible-greed.py"], name="starter_test", save_replay=False, record_logs=False)
