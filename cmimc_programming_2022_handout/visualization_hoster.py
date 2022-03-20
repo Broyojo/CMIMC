@@ -13,10 +13,14 @@ DIR_TO_HOST = "replays"
 # for the curious, this just does the standard 'python3 -m http.server <port>'
 # but adds a cross-origin request policy so that javascript on cmimc-online
 # can access the page.
+
+
 class corp_handler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
-        self.send_header("Access-Control-Allow-Origin","https://cmimconline.org")
+        self.send_header("Access-Control-Allow-Origin",
+                         "https://cmimconline.org")
         http.server.SimpleHTTPRequestHandler.end_headers(self)
+
 
 os.chdir(os.path.join(os.path.dirname(__file__), DIR_TO_HOST))
 with socketserver.TCPServer(("localhost", PORT), corp_handler) as httpd:

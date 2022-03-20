@@ -1,15 +1,19 @@
 # framework for running the graders on our machines locally
 
+import subprocess
+from threading import Timer
+import sys
 import json
 from collections import namedtuple
 from contextlib import ExitStack
 import random
 
-REPLAY_DIR = "replays" # relative to here, will be mkdired
+REPLAY_DIR = "replays"  # relative to here, will be mkdired
 
 # interfaces
 
 CodeboxClass = []
+
 
 class AbstractCodebox:
     HistoryEntry = namedtuple('HistoryEntry', 'event, kind, details')
@@ -20,11 +24,12 @@ class AbstractCodebox:
         self.alive = False
 
     def log(self, **kwargs):
-        if self.keep_log: self.hist.append(self.HistoryEntry(**kwargs))
+        if self.keep_log:
+            self.hist.append(self.HistoryEntry(**kwargs))
 
     def interaction_log(self):
         return self.hist
-    
+
     def kill(self):
         if self.alive:
             self.alive = False
@@ -34,13 +39,13 @@ class AbstractCodebox:
                 # print("Program exited with error:")
                 print(err.decode())
                 self.log(event='exit', kind='error', details=str(err))
-    
+
     def restart(self):
         self.kill()
         self.initialize_box()
         self.alive = True
         self.log(event='restart', kind='ok', details=None)
-    
+
     def write(self, data):
         if not self.alive:
             self.log(event='write', kind='skipped', details=None)
@@ -52,7 +57,7 @@ class AbstractCodebox:
         except Exception as e:
             self.log(event='write', kind='error', details=str(e))
             self.kill()
-        
+
     def read(self):
         if not self.alive:
             self.log(event='read', kind='skipped', details=None)
@@ -75,11 +80,15 @@ class AbstractCodebox:
         self.kill()
         return False
 
+
 def do_save_replay(game_name, replay_name, score, data):
-    import os, time
-    file_name = os.path.join(REPLAY_DIR, f"{game_name}_{int(time.time())}_{score}_{replay_name}.json")
+    import os
+    import time
+    file_name = os.path.join(
+        REPLAY_DIR, f"{game_name}_{int(time.time())}_{score}_{replay_name}.json")
     with open(file_name, "w") as f:
         f.write(json.dumps(data))
+
 
 class OptGrader:
     def grade(self, inp, codebox):
@@ -93,27 +102,32 @@ class OptGrader:
     def test(self, source, gen, name="", save_replay=False, seed=None, record_logs=False):
         player = {'code': open(source).read(), 'src_loc': source}
 
-        if seed is None: seed = random.randrange(1 << 30)
-        result = self.grade({'gen': gen, 'code': player, 'seed': seed}, Codebox)
+        if seed is None:
+            seed = random.randrange(1 << 30)
+        result = self.grade(
+            {'gen': gen, 'code': player, 'seed': seed}, Codebox)
 
-        if not record_logs: del result['playerlogs']
+        if not record_logs:
+            del result['playerlogs']
 
         if save_replay:
             do_save_replay(self.name.lower(), name, result['summary'], result)
         else:
             print(result)
-    
+
     def run(self):
         data = json.loads(input())
         task = json.loads(data['task'])
         gens = self.get_batch(task['gen'])
-        res = [self.grade({ 'gen': gen, 'seed': seed, 'code': data['code']}, CodeboxClass[0]) for gen,seed in gens]
+        res = [self.grade({'gen': gen, 'seed': seed, 'code': data['code']},
+                          CodeboxClass[0]) for gen, seed in gens]
 
         print(json.dumps({
             'summary': sum(r['summary'] for r in res),
             'history': [r['history'] for r in res],
             'playerlogs': [r['playerlogs'] for r in res],
         }))
+
 
 class AIGrader:
     def grade(self, inp, codebox_cls):
@@ -127,11 +141,14 @@ class AIGrader:
         return result
 
     def test(self, sources, name="", save_replay=True, record_logs=False):
-        players = [{'code': open(src_loc).read(), 'src_loc': src_loc} for src_loc in sources]
+        players = [{'code': open(src_loc).read(), 'src_loc': src_loc}
+                   for src_loc in sources]
         result = self.grade(players, Codebox)
-        if not record_logs: del result['playerlogs']
+        if not record_logs:
+            del result['playerlogs']
         if save_replay:
-            do_save_replay(self.name.lower(), name, max(x for x in result['summary']), result)
+            do_save_replay(self.name.lower(), name, max(
+                x for x in result['summary']), result)
         else:
             print(result)
 
@@ -140,9 +157,6 @@ class AIGrader:
 
 # sample competitor implementation, just runs file in place
 
-import subprocess
-import sys
-from threading import Timer
 
 class Codebox(AbstractCodebox):
     def __init__(self, src_loc, config):
@@ -167,7 +181,9 @@ class Codebox(AbstractCodebox):
             self.proc.stdin.flush()
         finally:
             t.cancel()
-            if self.timer_killed: raise Exception("timed out")
+            if self.timer_killed:
+                raise Exception("timed out")
+
     def read_raw(self):
         try:
             t = Timer(self.config['timeout'], lambda: self.timer_kill())
@@ -175,15 +191,19 @@ class Codebox(AbstractCodebox):
             return self.proc.stdout.readline()
         finally:
             t.cancel()
-            if self.timer_killed: raise Exception("timed out")
+            if self.timer_killed:
+                raise Exception("timed out")
+
     def get_stderr(self):
         return self.proc.stderr.read()
+
     def initialize_box(self):
         self.proc = subprocess.Popen(
             [sys.executable, self.src_loc],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            )
+        )
+
     def destroy_box(self):
         self.proc.kill()

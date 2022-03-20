@@ -14,9 +14,11 @@ import json
 #     you would like to purchase, which must be non-negative integers
 #     summing to at most 100.
 
+
 def buy(buys):
     my_history.append(buys)
     print(json.dumps({"buys": buys}))
+
 
 my_history = []
 day = 0
@@ -27,7 +29,7 @@ while True:
     yesterday = _data["yesterday"]
     scores = _data["scores"]
     my_index = _data["my_index"]
-    
+
     # the actual strategy
     buys = [0 for _ in range(10)]
     if day == 0:
@@ -42,13 +44,13 @@ while True:
             if i != my_index:
                 for coin in range(len(move)):
                     purchases[coin] += move[coin]
-        
+
         # 2. repeatedly select the coin with the highest expected value
         for _ in range(100):
             expected_benefit = [i/(purchases[i]+1) for i in range(10)]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
             purchases[to_buy] += 1
-    
+
     buy(buys)
     day += 1
