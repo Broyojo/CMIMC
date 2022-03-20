@@ -120,7 +120,7 @@ class Taylor(Strategy):
         
         return buys
 
-strategies = [GreedyOneAhead(), NoChange(), Taylor(2)]
+strategies = [GreedyOneAhead(), NoChange(), Taylor(3)]
 
 
 def buy(buys):
