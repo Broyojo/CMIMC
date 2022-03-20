@@ -1,3 +1,4 @@
+from math import sqrt
 import sys
 import json
 import random
@@ -118,7 +119,7 @@ def get_move(num_layers):
     #print(best_move, file=sys.stderr)
     best_move = best_moves[0]
     for move in best_moves:
-        if count_valid_neighbors(move[2][1], move[2][2]) > count_valid_neighbors(best_move[2][1], best_move[2][2]):
+        if count_valid_neighbors(move[2][1], move[2][2]) - 0.2 * distance_to_com((move[0], move[1])) > count_valid_neighbors(best_move[2][1], best_move[2][2]) - 0.2 * distance_to_com((best_move[0], best_move[1])):
             best_move = move
     return best_move
 
@@ -133,13 +134,29 @@ def get_move(num_layers):
     #     return random.choice(moves)
 
 
+def distance_to_com(pos):
+    global center_of_mass
+    return sqrt((center_of_mass[0] - pos[0])**2 + (center_of_mass[1] - pos[1])**2)
+
 def output(i, j):
     print(json.dumps({"i": i, "j": j}))
 
+center_of_mass = [12.5,12.5]
+num_green = 25**2
+
+def update_center_of_mass(players):
+    global center_of_mass, num_green
+    mass_sum = [center_of_mass[0] * num_green, center_of_mass[1] * num_green]
+    for player in players:
+        mass_sum[0] -= player["i"]
+        mass_sum[1] -= player["j"]
+        num_green -= 1
+    center_of_mass = [mass_sum[0] / num_green, mass_sum[1] / num_green]
 
 while True:
     _data = json.loads(input())
     arena = _data["arena"]
+
     players = _data["players"]
     my_index = _data["my_index"]
     grace_moves_left = _data["grace_moves_left"]
@@ -152,6 +169,8 @@ while True:
     # print(numpy.array(arena), file=sys.stderr)
     # print(my_i, my_j, file=sys.stderr)
     # print(total_safe_layers(my_i, my_j, 3, 3), file=sys.stderr)
+
+    update_center_of_mass(players)
 
     move = get_move(num_layers=10)
     #print(move, file=sys.stderr)
