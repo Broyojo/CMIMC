@@ -2,6 +2,11 @@ import sys
 import json
 import random
 
+
+def log(*args):
+    print(*args, file=sys.stderr)
+
+
 arena = []
 my_i = 0
 my_j = 0
@@ -29,14 +34,14 @@ def is_same_as_player(i, j):
 
 def is_valid_tile(i, j):
     if in_grid(i, j):
-        if not is_same_as_self(i, j):
-            if not is_same_as_player(i, j):
-                if arena[i][j] == 1:
+        if arena[i][j] == 1:
+            if not is_same_as_self(i, j):
+                if not is_same_as_player(i, j):
                     return True
     return False
 
 
-def count_valid_neighbors(i, j):
+def count_valid_neighbors(i, j, exclude=[]):
     count = 0
     for di in range(-move_dist, move_dist+1):
         for dj in range(-move_dist, move_dist+1):
@@ -44,20 +49,23 @@ def count_valid_neighbors(i, j):
             new_j = j + dj
 
             if new_i != i and new_j != j:
-                if is_valid_tile(new_i, new_j):
-                    count += 1
+                if (new_i, new_j) not in exclude:
+                    if is_valid_tile(new_i, new_j):
+                        count += 1
     return count
 
 
-memory = {}
-
-
-def total_expected_reward(i, j, layers):
-    print(i, j, layers, file=sys.stderr)
+def total_expected_reward(i, j, layers, memory={}, future_move_history=[]):
+    #log(i, j)
     if layers == 0:
         return 0
+
     if (i, j) in memory:
         return memory[(i, j)]
+
+    future_move_history.append((i, j))
+
+    total_reward = 0
 
     for di in range(-move_dist, move_dist+1):
         for dj in range(-move_dist, move_dist+1):
@@ -65,35 +73,17 @@ def total_expected_reward(i, j, layers):
             new_j = j + dj
 
             valid_counts = count_valid_neighbors(
-                new_i, new_j)
+                new_i, new_j, exclude=future_move_history)
 
-            if valid_counts == 0:
-                return 0
+            total_reward += valid_counts + \
+                total_expected_reward(
+                    new_i, new_j, layers-1, memory, future_move_history)
 
-            reward = valid_counts + \
-                total_expected_reward(new_i, new_j, layers - 1)
-
-            memory[(i, j)] = reward
-            return reward
-
-
-def total_safe_layers(i, j, layers, initial_layers):
-    layer = initial_layers - layers
-    if layers == 0:
-        return layer
-
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
-            new_i = i + di
-            new_j = j + dj
-            if(count_valid_neighbors(new_i, new_j) > 0):
-                return total_safe_layers(new_i, new_j, layers - 1, initial_layers)
-
-    return layer
+    memory[(i, j)] = total_reward
+    return total_reward
 
 
 def get_move(num_layers):
-    memory = {}
     moves = []
     for di in range(-move_dist, move_dist+1):
         for dj in range(-move_dist, move_dist+1):
@@ -101,8 +91,8 @@ def get_move(num_layers):
             new_j = my_j + dj
             if is_valid_tile(new_i, new_j):
                 moves.append(
-                    (new_i, new_j, total_expected_reward(new_i, new_j, layers=10)))
-    print(total_safe_layers())
+                    (new_i, new_j, total_expected_reward(new_i, new_j, layers=num_layers)))
+
     if grace_moves_left > 0:
         new_i = my_i - 2
         new_j = my_j + 2
@@ -114,21 +104,11 @@ def get_move(num_layers):
         return (my_i, my_j)
 
     best_move = (0, 0, -1000)
+
     for move in moves:
         if move[2] > best_move[2]:
             best_move = move
-
     return move
-
-    # better_moves = []
-    # for move in moves:
-    #     if count_valid_neighbors(move[0], move[1]) > 0:
-    #         better_moves.append(move)
-
-    # if len(better_moves) != 0:
-    #     return random.choice(better_moves)
-    # else:
-    #     return random.choice(moves)
 
 
 def output(i, j):
@@ -146,6 +126,6 @@ while True:
     my_i, my_j = me["i"], me["j"]
 
     my_history.append((my_i, my_j))
+    move = get_move(num_layers=5)
 
-    move = get_move(num_layers=2)
     output(move[0], move[1])

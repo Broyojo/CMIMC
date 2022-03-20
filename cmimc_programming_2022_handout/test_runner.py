@@ -1,10 +1,10 @@
 # run this file
 
 # make sure that we are in the correct directory
+import sys
 from graders import MotPE, NFGC, Help, TNTRun
 import os
 os.chdir(os.path.dirname(__file__))
-
 
 # MotPE and Help (the optimization problems) take in a gen argument,
 # corresponding to (generator, parameter) for MotPE (but should be left as None
@@ -28,7 +28,9 @@ os.chdir(os.path.dirname(__file__))
 
 #Help().test(source="bots/help_starter.py", name="starter_test", save_replay=True, seed=1337, gen=None, record_logs=False)
 
-TNTRun().test(sources=["../tnt-run-better.py"]*12,
+args = sys.argv
+
+TNTRun().test(sources=[args[1]]*12,
               name="starter_test", save_replay=True, record_logs=True)
 
 # NFGC().test(sources=["../non-fungible-greed.py"]*12, name="starter_test", save_replay=True, record_logs=False)
