@@ -28,7 +28,7 @@ os.chdir(os.path.dirname(__file__))
 
 #Help().test(source="bots/help_starter.py", name="starter_test", save_replay=True, seed=1337, gen=None, record_logs=False)
 
-TNTRun().test(sources=["../tnt-run-better.py"]*12,
-              name="starter_test", save_replay=True, record_logs=True)
+# TNTRun().test(sources=["../tnt-run-better.py"]*12,
+            #   name="starter_test", save_replay=True, record_logs=True)
 
-# NFGC().test(sources=["../non-fungible-greed.py"]*12, name="starter_test", save_replay=True, record_logs=False)
+NFGC().test(sources=["bots/nfgc_starter.py"]*29 + ["../non-fungible-greed.py"], name="starter_test", save_replay=False, record_logs=False)

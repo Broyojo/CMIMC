@@ -1,5 +1,5 @@
 import json
-from math import sqrt
+from math import factorial, sqrt
 from sys import stderr
 
 # INPUT FORMAT (per turn):
@@ -82,25 +82,42 @@ class NoChange(Strategy):
         return buys
 
 
-class PickLeast(Strategy):
+class Taylor(Strategy):
     def make_purchases(self, yesterday, scores, self_index):
+        # 1. compute a newton series (Taylor Series but discrete) for every coin
+        prediction = []
+        for coin_i in range(10):
+            # 1a. compute the backward finite difference derivatives (https://en.wikipedia.org/wiki/Finite_difference)
+            derivatives = [[historic_sums[i][coin_i] for i in range(day)]]
+            if len(derivatives[0]) > 4:
+                derivatives[0] = derivatives[0][-4:]
+            while len(derivatives[-1]) != 1:
+                derivatives.append([derivatives[-1][i+1] - derivatives[-1][i] for i in range(len(derivatives[-1]) - 1)])
+
+            def upward_factorial(n, terms):
+                prod = 1
+                for i in range(terms):
+                    prod *= n+(i-day+1)
+                return prod
+
+            # 1b. compute + evaluate the newton series (also https://en.wikipedia.org/wiki/Finite_difference)
+            series = 0
+            for term_i, derivative in enumerate(derivatives):
+                derivative = derivative[-1]
+                series += derivative * upward_factorial(day,term_i)/factorial(term_i)
+            prediction.append(max(0, series))
+        
+        # 2. select optimal purchases based on the prediction
         buys = [0 for _ in range(10)]
-
-        # 1. aggregate a list of how much each coin was purchased
-        purchases = [0 for _ in range(10)]
-        for i, move in enumerate(yesterday):
-            if i != self_index:
-                for coin in range(len(move)):
-                    purchases[coin] += move[coin]
-
-        # 2. find the least purchased coin and buy all of it
-        least_i = purchases.index(min(purchases))
-        buys[least_i] = 100
-
+        for _ in range(100):
+            expected_benefit = [ ((i+1) * ((buys[i]+1) / (prediction[i]+buys[i]+1) - buys[i] / (prediction[i]+buys[i]))) if prediction[i]+buys[i] != 0 else i+1 for i in range(10)]
+            to_buy = expected_benefit.index(max(expected_benefit))
+            buys[to_buy] += 1
+        
         return buys
 
 
-strategies = [GreedyOneAhead(), NoChange(), PickLeast()]
+strategies = [GreedyOneAhead(), NoChange(), Taylor()]
 
 
 def buy(buys):
@@ -123,6 +140,7 @@ def classify_opponents(history, scores, my_index):
 
 
 history = []
+historic_sums = []
 day = 0
 
 while True:
@@ -144,8 +162,16 @@ while True:
         buy(buys)
         day += 1
     else:
-        # attempt to classify the opponent's behavior
+        # update the history
         history.append(yesterday)
+        yesterday_sums = [0 for _ in range(10)]
+        for i, move in enumerate(yesterday):
+            if i != my_index:
+                for coin in range(len(move)):
+                    yesterday_sums[coin] += move[coin]
+        historic_sums.append(yesterday_sums)
+
+        # attempt to classify the opponent's behavior
         opponent_strategies = classify_opponents(history, scores, my_index)
 
         # simulate opponent's moves
