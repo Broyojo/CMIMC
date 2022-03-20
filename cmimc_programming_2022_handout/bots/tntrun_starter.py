@@ -31,7 +31,6 @@ def output(i, j):
 # You can store globals outside of the main loop
 my_history = []
 size = 25
-print("example print", file=sys.stderr)
 
 while True:
     # Fetches input from grader (no need to edit)

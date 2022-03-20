@@ -30,7 +30,7 @@ os.chdir(os.path.dirname(__file__))
 
 args = sys.argv
 
-TNTRun().test(sources=[args[1]]*12,
-              name="starter_test", save_replay=True, record_logs=True)
+TNTRun().test(sources=["../tnt-run-daniel.py"]*1 + ["bots/tntrun_starter.py"]*0,
+              name="daniel-test-1", save_replay=True, record_logs=True)
 
 # NFGC().test(sources=["bots/nfgc_starter.py"]*29 + ["../non-fungible-greed.py"], name="starter_test", save_replay=False, record_logs=False)
