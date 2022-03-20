@@ -18,9 +18,10 @@ import random
     "bits": array of 64 0s or 1s, to be passed to your drone.
 '''
 # Function for handling tower output
+
+
 def tower_output(bits):
     print(json.dumps({"bits": bits}))
-
 
 
 # INPUT FORMAT (as drone):
@@ -38,9 +39,10 @@ def tower_output(bits):
         to be made in the order sent.
 '''
 # Function for handling drone output
+
+
 def drone_output(col, moves):
     print(json.dumps({"col": col, "moves": moves}))
-
 
 
 # Fetches input from grader (no need to edit)
@@ -55,20 +57,20 @@ if role == "drone":
 # End input
 
 
-
 ## REPLACE STRATEGY BELOW ##
 
 # Sample strategy (random)
 
 if role == "tower":
     # Can read variable "airspace", but not "bits"
-    print("airspace", ''.join(map(str, airspace[255])), file = sys.stderr) # example print
-    message = random.choices((0, 1), k = 64)
+    # example print
+    print("airspace", ''.join(map(str, airspace[255])), file=sys.stderr)
+    message = random.choices((0, 1), k=64)
     tower_output(message)
 
 if role == "drone":
     # Can read variable "bits", but not "airspace"
-    print("bits", ''.join(map(str, bits)), file = sys.stderr) # example print
+    print("bits", ''.join(map(str, bits)), file=sys.stderr)  # example print
     col = random.randint(0, 255)
-    moves = random.choices("ULR", k = 65536)
+    moves = random.choices("ULR", k=65536)
     drone_output(col, moves)

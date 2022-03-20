@@ -10,7 +10,6 @@ grace_moves_left = 0
 my_history = []
 size = 25
 move_dist = 2
-count = 0
 
 
 def in_grid(i, j):
@@ -22,9 +21,19 @@ def is_same_as_self(i, j):
 
 
 def is_same_as_player(i, j):
-    for player in players:
-        if i == player["i"] and j == player["j"]:
+    for player_index in range(len(players)):
+        if players[player_index]["i"] == i and players[player_index]["j"] == j:
             return True
+    return False
+
+
+def is_near_player(i, j, distance):
+    for di in range(-distance, distance + 1):
+        for dj in range(-distance, distance + 1):
+            new_i = i + di
+            new_j = j + dj
+            if is_same_as_player(new_i, new_j):
+                return True
     return False
 
 
@@ -39,8 +48,8 @@ def is_valid_tile(i, j):
 
 def count_valid_neighbors(i, j, memory=[]):
     count = 0
-    for di in random.shuffle(range(-move_dist, move_dist+1)):
-        for dj in random.shuffle(range(-move_dist, move_dist+1)):
+    for di in range(-move_dist, move_dist+1):
+        for dj in range(-move_dist, move_dist+1):
             new_i = i + di
             new_j = j + dj
 
@@ -50,22 +59,28 @@ def count_valid_neighbors(i, j, memory=[]):
     return count
 
 
-def total_safe_layers(i, j, layers, initial_layers, memory=[]):
+def total_safe_layers(i, j, layers, initial_layers, path=[], memory=[]):
     layer = (initial_layers - layers, i, j)
     if layers == 0:
         return layer
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
+    for coord in memory:
+        if coord[1] == i and coord[2] == j:
+            return coord
+    di_list = (1, 0, -1, 2, -2)
+    dj_list = (-1, 0, 1, -2, 2)
+    for di in di_list:
+        for dj in dj_list:
             new_i = i + di
             new_j = j + dj
             if is_valid_tile(new_i, new_j):
-                if count_valid_neighbors(new_i, new_j) > 0 and (new_i, new_j) not in memory:
+                if count_valid_neighbors(new_i, new_j, path) > 0 and (new_i, new_j) not in path and not is_near_player(new_i, new_j, 1):
                     # print("Checking layer", layer, new_i,
                     #     new_j, "and excluding:", memory, file=sys.stderr)
-                    memory_copy = [i for i in memory]
-                    memory_copy.append((new_i, new_j))
+                    path_copy = [i for i in path]
+                    path_copy.append((new_i, new_j))
                     temp_layer = total_safe_layers(
-                        new_i, new_j, layers - 1, initial_layers, memory_copy)
+                        new_i, new_j, layers - 1, initial_layers, path_copy, memory)
+                    memory.append(temp_layer)
                     if temp_layer[0] > layer[0]:
                         layer = temp_layer
                     # print("Layer", layer, "out of",
@@ -83,8 +98,10 @@ def get_move(num_layers):
         return (new_i, new_j)
 
     moves = []
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
+    di_list = (1, 0, -1, 2, -2)
+    dj_list = (-1, 0, 1, -2, 2)
+    for di in di_list:
+        for dj in dj_list:
             new_i = my_i + di
             new_j = my_j + dj
             if is_valid_tile(new_i, new_j):
@@ -103,7 +120,7 @@ def get_move(num_layers):
     for move in best_moves:
         if count_valid_neighbors(move[2][1], move[2][2]) > count_valid_neighbors(best_move[2][1], best_move[2][2]):
             best_move = move
-    return random.choice(best_moves)
+    return best_move
 
     # better_moves = []
     # for move in moves:
@@ -132,12 +149,10 @@ while True:
 
     my_history.append((my_i, my_j))
 
-    if count <= 2:
-        # print(numpy.array(arena), file=sys.stderr)
-        # print(my_i, my_j, file=sys.stderr)
-        # print(total_safe_layers(my_i, my_j, 3, 3), file=sys.stderr)
-        count += 1
+    # print(numpy.array(arena), file=sys.stderr)
+    # print(my_i, my_j, file=sys.stderr)
+    # print(total_safe_layers(my_i, my_j, 3, 3), file=sys.stderr)
 
-    move = get_move(num_layers=8)
+    move = get_move(num_layers=10)
     #print(move, file=sys.stderr)
     output(move[0], move[1])
