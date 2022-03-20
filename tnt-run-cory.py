@@ -1,4 +1,3 @@
-from math import sqrt
 import sys
 import json
 import random
@@ -20,13 +19,12 @@ def in_grid(i, j):
 def is_same_as_self(i, j):
     return my_i == i and my_j == j
 
-
+    
 def is_same_as_player(i, j):
     for player_index in range(len(players)):
         if players[player_index]["i"] == i and players[player_index]["j"] == j:
             return True
     return False
-
 
 def is_near_player(i, j, distance):
     for di in range(-distance, distance + 1):
@@ -36,7 +34,22 @@ def is_near_player(i, j, distance):
             if is_same_as_player(new_i, new_j):
                 return True
     return False
-
+    
+def players_position():
+    above_minus_below = 0
+    left_minus_right = 0
+    for player_index in range(len(players)):
+        if players[player_index]["i"] > my_i:
+            above_minus_below -= 1
+        elif players[player_index]["i"] < my_i:
+            above_minus_below += 1
+        if players[player_index]["i"] > my_i:
+            left_minus_right -= 1
+        elif players[player_index]["i"] < my_i:
+            left_minus_right += 1
+    return (above_minus_below, left_minus_right)
+ 
+    
 
 def is_valid_tile(i, j):
     if in_grid(i, j):
@@ -47,7 +60,7 @@ def is_valid_tile(i, j):
     return False
 
 
-def count_valid_neighbors(i, j, memory=[]):
+def count_valid_neighbors(i, j, memory = []):
     count = 0
     for di in range(-move_dist, move_dist+1):
         for dj in range(-move_dist, move_dist+1):
@@ -74,7 +87,7 @@ def total_safe_layers(i, j, layers, initial_layers, path=[], memory=[]):
             new_i = i + di
             new_j = j + dj
             if is_valid_tile(new_i, new_j):
-                if count_valid_neighbors(new_i, new_j, path) > 0 and (new_i, new_j) not in path and not is_near_player(new_i, new_j, 1):
+                if count_valid_neighbors(new_i, new_j, path) > 0 and (new_i, new_j) not in path and not is_near_player(new_i, new_j, 2):
                     # print("Checking layer", layer, new_i,
                     #     new_j, "and excluding:", memory, file=sys.stderr)
                     path_copy = [i for i in path]
@@ -99,8 +112,22 @@ def get_move(num_layers):
         return (new_i, new_j)
 
     moves = []
-    di_list = (1, 0, -1, 2, -2)
-    dj_list = (-1, 0, 1, -2, 2)
+    player_position = players_position()
+    if player_position[0] > 2:
+        di_list = (2, 1, 0, -1, -2)
+    elif player_position[0] < 2:
+        di_list = (-2, -1, 0, 1, 2)
+    else:
+        di_list = (0, 1, -1, 2, -2)
+    if player_position[1] > 2:
+        dj_list = (2, 1, 0, -1, -2)
+    elif player_position[1] < 2:
+        dj_list = (-2, -1, 0, 1, 2)
+    else:
+        dj_list = (0, -1, 1, -2, 2)
+    #if count_valid_neighbors(my_i, my_j) <= 2:
+    #    di_list = (2, -2, 1, -1, 0)
+    #    dj_list = (-2, 2, -1, 1, 0)
     for di in di_list:
         for dj in dj_list:
             new_i = my_i + di
@@ -119,7 +146,7 @@ def get_move(num_layers):
     #print(best_move, file=sys.stderr)
     best_move = best_moves[0]
     for move in best_moves:
-        if count_valid_neighbors(move[2][1], move[2][2]) - 0.2 * distance_to_com((move[0], move[1])) > count_valid_neighbors(best_move[2][1], best_move[2][2]) - 0.2 * distance_to_com((best_move[0], best_move[1])):
+        if count_valid_neighbors(move[2][1], move[2][2]) > count_valid_neighbors(best_move[2][1], best_move[2][2]):
             best_move = move
     return best_move
 
@@ -134,29 +161,13 @@ def get_move(num_layers):
     #     return random.choice(moves)
 
 
-def distance_to_com(pos):
-    global center_of_mass
-    return sqrt((center_of_mass[0] - pos[0])**2 + (center_of_mass[1] - pos[1])**2)
-
 def output(i, j):
     print(json.dumps({"i": i, "j": j}))
 
-center_of_mass = [12.5,12.5]
-num_green = 25**2
-
-def update_center_of_mass(players):
-    global center_of_mass, num_green
-    mass_sum = [center_of_mass[0] * num_green, center_of_mass[1] * num_green]
-    for player in players:
-        mass_sum[0] -= player["i"]
-        mass_sum[1] -= player["j"]
-        num_green -= 1
-    center_of_mass = [mass_sum[0] / num_green, mass_sum[1] / num_green]
 
 while True:
     _data = json.loads(input())
     arena = _data["arena"]
-
     players = _data["players"]
     my_index = _data["my_index"]
     grace_moves_left = _data["grace_moves_left"]
@@ -169,8 +180,6 @@ while True:
     # print(numpy.array(arena), file=sys.stderr)
     # print(my_i, my_j, file=sys.stderr)
     # print(total_safe_layers(my_i, my_j, 3, 3), file=sys.stderr)
-
-    update_center_of_mass(players)
 
     move = get_move(num_layers=10)
     #print(move, file=sys.stderr)
