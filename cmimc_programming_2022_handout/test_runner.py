@@ -4,6 +4,7 @@
 import sys
 from graders import MotPE, NFGC, Help, TNTRun
 import os
+
 os.chdir(os.path.dirname(__file__))
 
 # MotPE and Help (the optimization problems) take in a gen argument,
@@ -25,14 +26,19 @@ os.chdir(os.path.dirname(__file__))
 args = sys.argv
 
 
-MotPE().test(gen=("random", 10), source=sys.argv[1],
-             name="starter_random", save_replay=True, record_logs=False)
-#MotPE().test(gen=("circles", 4), source="bots/motpe_starter.py", name="starter_circles", save_replay=True, record_logs=False)
-#MotPE().test(gen=("path", 16), source="bots/motpe_starter.py", name="starter_path", save_replay=True, record_logs=False)
+MotPE().test(
+    gen=("random", 10),
+    source=sys.argv[1],
+    name="starter_random",
+    save_replay=True,
+    record_logs=False,
+)
+# MotPE().test(gen=("circles", 4), source="bots/motpe_starter.py", name="starter_circles", save_replay=True, record_logs=False)
+# MotPE().test(gen=("path", 16), source="bots/motpe_starter.py", name="starter_path", save_replay=True, record_logs=False)
 
-#Help().test(source="bots/help_starter.py", name="starter_test", save_replay=True, seed=1337, gen=None, record_logs=False)
+# Help().test(source="bots/help_starter.py", name="starter_test", save_replay=True, seed=1337, gen=None, record_logs=False)
 
 
-#TNTRun().test(sources=[args[1]]*12,name="starter_test", save_replay=True, record_logs=True)
+# TNTRun().test(sources=[args[1]]*12,name="starter_test", save_replay=True, record_logs=True)
 
 # NFGC().test(sources=["bots/nfgc_starter.py"]*29 + ["../non-fungible-greed.py"], name="starter_test", save_replay=False, record_logs=False)

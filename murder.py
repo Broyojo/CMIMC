@@ -23,8 +23,8 @@ size = 256
 
 bits_for_starting_pos = 8  # 2^8 = 256
 # 56 bits left, 8 possible moves
-bits_for_movement = 5     # 2^5 = 32
-bits_for_turn = 2         # 2^2 = 4
+bits_for_movement = 5  # 2^5 = 32
+bits_for_turn = 2  # 2^2 = 4
 
 UP = 0
 RIGHT = 1
@@ -37,7 +37,11 @@ class Point:
         self.j = j
 
     def is_valid(self):
-        return 0 <= self.i <= size-1 and 0 <= self.j <= size-1 and airspace[self.i][self.j] == 0
+        return (
+            0 <= self.i <= size - 1
+            and 0 <= self.j <= size - 1
+            and airspace[self.i][self.j] == 0
+        )
 
     def __add__(self, p):
         return Point(self.i + p.i, self.j + p.j)
@@ -84,6 +88,7 @@ class Game:
 
         self.path_finder = PathFinder(airspace)
         self.encoder = 2
+
 
 # def main():
 #     game = Game(
@@ -169,8 +174,9 @@ def find_paths(p, moves, initial_moves, score=0, mem=[]):
                 new_p = Point(p.i - distance, p.j)
                 score += distance
                 mem.append(new_p)
-                paths[-1].append(find_paths(new_p, moves-1,
-                                            initial_moves, score, mem))
+                paths[-1].append(
+                    find_paths(new_p, moves - 1, initial_moves, score, mem)
+                )
         elif dir == RIGHT:
             max_distance = 0
             while Point(p.i, p.j + max_distance).is_valid():
@@ -178,8 +184,7 @@ def find_paths(p, moves, initial_moves, score=0, mem=[]):
             for distance in range(max_distance, 0, -1):
                 new_p = Point(p.i - distance, p.j)
                 mem.append(new_p)
-                paths.append(find_paths(new_p, moves-1,
-                             initial_moves, score, mem))
+                paths.append(find_paths(new_p, moves - 1, initial_moves, score, mem))
         elif dir == LEFT:
             max_distance = 0
             while Point(p.i, p.j - max_distance).is_valid():
@@ -187,8 +192,7 @@ def find_paths(p, moves, initial_moves, score=0, mem=[]):
             for distance in range(max_distance, 0, -1):
                 new_p = Point(p.i - distance, p.j)
                 mem.append(new_p)
-                paths.append(find_paths(new_p, moves-1,
-                             initial_moves, score, mem))
+                paths.append(find_paths(new_p, moves - 1, initial_moves, score, mem))
     print("Points in mem:", mem, file=sys.stderr)
     return paths
 
@@ -212,14 +216,14 @@ def drone_output(col, moves):
 
 
 if role == "tower":
-    print("airspace", ''.join(map(str, airspace[255])), file=sys.stderr)
+    print("airspace", "".join(map(str, airspace[255])), file=sys.stderr)
     message = []
     print("Paths:", find_paths(Point(255, 0), 8), file=sys.stderr)
     print("hello", file=sys.stderr)
     tower_output(message)
 
 if role == "drone":
-    print("bits", ''.join(map(str, bits)), file=sys.stderr)
+    print("bits", "".join(map(str, bits)), file=sys.stderr)
     col = random.randint(0, 255)
     moves = random.choices("ULR", k=65536)
     drone_output(col, moves)

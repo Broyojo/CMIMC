@@ -18,7 +18,7 @@ move_dist = 2
 
 
 def in_grid(i, j):
-    return 0 <= i <= size-1 and 0 <= j <= size-1
+    return 0 <= i <= size - 1 and 0 <= j <= size - 1
 
 
 def is_same_as_self(i, j):
@@ -43,8 +43,8 @@ def is_valid_tile(i, j):
 
 def count_valid_neighbors(i, j, exclude=[]):
     count = 0
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
+    for di in range(-move_dist, move_dist + 1):
+        for dj in range(-move_dist, move_dist + 1):
             new_i = i + di
             new_j = j + dj
 
@@ -56,7 +56,7 @@ def count_valid_neighbors(i, j, exclude=[]):
 
 
 def total_expected_reward(i, j, layers, memory={}, future_move_history=[]):
-    #log(i, j)
+    # log(i, j)
     if layers == 0:
         return 0
 
@@ -67,17 +67,18 @@ def total_expected_reward(i, j, layers, memory={}, future_move_history=[]):
 
     total_reward = 0
 
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
+    for di in range(-move_dist, move_dist + 1):
+        for dj in range(-move_dist, move_dist + 1):
             new_i = i + di
             new_j = j + dj
 
             valid_counts = count_valid_neighbors(
-                new_i, new_j, exclude=future_move_history)
+                new_i, new_j, exclude=future_move_history
+            )
 
-            total_reward += valid_counts + \
-                total_expected_reward(
-                    new_i, new_j, layers-1, memory, future_move_history)
+            total_reward += valid_counts + total_expected_reward(
+                new_i, new_j, layers - 1, memory, future_move_history
+            )
 
     memory[(i, j)] = total_reward
     return total_reward
@@ -85,13 +86,18 @@ def total_expected_reward(i, j, layers, memory={}, future_move_history=[]):
 
 def get_move(num_layers):
     moves = []
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
+    for di in range(-move_dist, move_dist + 1):
+        for dj in range(-move_dist, move_dist + 1):
             new_i = my_i + di
             new_j = my_j + dj
             if is_valid_tile(new_i, new_j):
                 moves.append(
-                    (new_i, new_j, total_expected_reward(new_i, new_j, layers=num_layers)))
+                    (
+                        new_i,
+                        new_j,
+                        total_expected_reward(new_i, new_j, layers=num_layers),
+                    )
+                )
 
     if grace_moves_left > 0:
         new_i = my_i - 2

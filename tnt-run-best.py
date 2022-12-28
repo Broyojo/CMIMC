@@ -72,7 +72,7 @@ class NeuralNetwork:
         self.layers = [
             Layer(input_dim, hidden_dim),
             Layer(hidden_dim, output_dim),
-            Layer(output_dim, 1)
+            Layer(output_dim, 1),
         ]
 
 

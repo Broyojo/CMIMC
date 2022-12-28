@@ -3,7 +3,7 @@ import json
 import random
 
 # INPUT FORMAT (per turn):
-'''
+"""
     "arena": A 2D (25 x 25) list of integers representing the current
         arena state, 1 for a present tile and 0 for empty.
         Can be indexed via arena[i][j].
@@ -15,12 +15,12 @@ import random
     "grace_moves_left": How many grace moves are remaining (if any),
         i.e. if this is 1, then on your next move, the ground currently
         underneath you does not disappear, but if this is 0 it does.
-'''
+"""
 # OUTPUT FORMAT (per turn):
-'''
+"""
     "i", "j": Your destination coordinates. Each coordinate can differ by
         at most 2 from your previous coordinates.
-'''
+"""
 # Function for handling output
 
 

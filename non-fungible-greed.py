@@ -17,7 +17,7 @@ from sys import stderr
 #     summing to at most 100.
 
 
-class Strategy():
+class Strategy:
     def make_purchases(self, yesterday, scores, self_index):
         pass
 
@@ -34,9 +34,8 @@ class Strategy():
         for day in range(len(history)):
             yesterday = []
             if day != 0:
-                yesterday = history[day-1]
-                predicted_move = self.make_purchases(
-                    yesterday, scores, self_index)
+                yesterday = history[day - 1]
+                predicted_move = self.make_purchases(yesterday, scores, self_index)
             else:
                 predicted_move = [10 for _ in range(10)]
             predicted_moveset.append(predicted_move)
@@ -68,8 +67,18 @@ class GreedyOneAhead(Strategy):
 
         # 2. repeatedly select the coin with the highest expected value
         for _ in range(100):
-            expected_benefit = [((i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (
-                purchases[i]+buys[i]))) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
+            expected_benefit = [
+                (
+                    (i + 1)
+                    * (
+                        (buys[i] + 1) / (purchases[i] + buys[i] + 1)
+                        - buys[i] / (purchases[i] + buys[i])
+                    )
+                )
+                if purchases[i] + buys[i] != 0
+                else i + 1
+                for i in range(10)
+            ]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
 
@@ -83,10 +92,9 @@ class NoChange(Strategy):
 
 
 class Taylor(Strategy):
-    
     def __init__(self, terms):
         self.n_terms = terms
-    
+
     def make_purchases(self, yesterday, scores, self_index):
         # 1. compute a newton series (Taylor Series but discrete) for every coin
         prediction = []
@@ -96,29 +104,46 @@ class Taylor(Strategy):
             if len(derivatives[0]) > self.n_terms + 1:
                 derivatives[0] = derivatives[0][-4:]
             while len(derivatives[-1]) != 1:
-                derivatives.append([derivatives[-1][i+1] - derivatives[-1][i] for i in range(len(derivatives[-1]) - 1)])
+                derivatives.append(
+                    [
+                        derivatives[-1][i + 1] - derivatives[-1][i]
+                        for i in range(len(derivatives[-1]) - 1)
+                    ]
+                )
 
             def upward_factorial(n, terms):
                 prod = 1
                 for i in range(terms):
-                    prod *= n+(i-day+1)
+                    prod *= n + (i - day + 1)
                 return prod
 
             # 1b. compute + evaluate the newton series (also https://en.wikipedia.org/wiki/Finite_difference)
             series = 0
             for term_i, derivative in enumerate(derivatives):
                 derivative = derivative[-1]
-                series += derivative * upward_factorial(day,term_i)/factorial(term_i)
+                series += derivative * upward_factorial(day, term_i) / factorial(term_i)
             prediction.append(max(0, series))
-        
+
         # 2. select optimal purchases based on the prediction
         buys = [0 for _ in range(10)]
         for _ in range(100):
-            expected_benefit = [ ((i+1) * ((buys[i]+1) / (prediction[i]+buys[i]+1) - buys[i] / (prediction[i]+buys[i]))) if prediction[i]+buys[i] != 0 else i+1 for i in range(10)]
+            expected_benefit = [
+                (
+                    (i + 1)
+                    * (
+                        (buys[i] + 1) / (prediction[i] + buys[i] + 1)
+                        - buys[i] / (prediction[i] + buys[i])
+                    )
+                )
+                if prediction[i] + buys[i] != 0
+                else i + 1
+                for i in range(10)
+            ]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
-        
+
         return buys
+
 
 strategies = [GreedyOneAhead(), NoChange(), Taylor(3)]
 
@@ -136,7 +161,8 @@ def classify_opponents(history, scores, my_index):
             strategy_scores = []
             for strategy in strategies:
                 strategy_scores.append(
-                    strategy.agrees_with(history, scores, opponent_i))
+                    strategy.agrees_with(history, scores, opponent_i)
+                )
             best = strategy_scores.index(min(strategy_scores))
             classifications.append(strategies[best])
     return classifications
@@ -156,10 +182,20 @@ while True:
     if day == 0:
         # an arbitrary first day strategy based on typical first days (grabbed from replays)
         buys = [0 for _ in range(10)]
-        purchases = [53 * (x+1) for x in range(10)]
+        purchases = [53 * (x + 1) for x in range(10)]
         for _ in range(100):
-            expected_benefit = [((i+1) * ((buys[i]+1) / (purchases[i]+buys[i]+1) - buys[i] / (
-                purchases[i]+buys[i]))) if purchases[i]+buys[i] != 0 else i+1 for i in range(10)]
+            expected_benefit = [
+                (
+                    (i + 1)
+                    * (
+                        (buys[i] + 1) / (purchases[i] + buys[i] + 1)
+                        - buys[i] / (purchases[i] + buys[i])
+                    )
+                )
+                if purchases[i] + buys[i] != 0
+                else i + 1
+                for i in range(10)
+            ]
             to_buy = expected_benefit.index(max(expected_benefit))
             buys[to_buy] += 1
         buy(buys)
@@ -183,9 +219,12 @@ while True:
             if opponent_i != my_index:
                 opponent_strat = opponent_strategies[opponent_i]
                 print(
-                    f"opponent {opponent_i+1} will probably buy {opponent_strat.make_purchases(yesterday, scores, opponent_i)}", file=stderr)
+                    f"opponent {opponent_i+1} will probably buy {opponent_strat.make_purchases(yesterday, scores, opponent_i)}",
+                    file=stderr,
+                )
                 today_prediction[opponent_i] = opponent_strat.make_purchases(
-                    yesterday, scores, opponent_i)
+                    yesterday, scores, opponent_i
+                )
 
         # buy coins based on opponent's moves
         buys = GreedyOneAhead().make_purchases(today_prediction, scores, my_index)

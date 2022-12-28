@@ -13,18 +13,19 @@ move_dist = 2
 
 
 def in_grid(i, j):
-    return 0 <= i <= size-1 and 0 <= j <= size-1
+    return 0 <= i <= size - 1 and 0 <= j <= size - 1
 
 
 def is_same_as_self(i, j):
     return my_i == i and my_j == j
 
-    
+
 def is_same_as_player(i, j):
     for player_index in range(len(players)):
         if players[player_index]["i"] == i and players[player_index]["j"] == j:
             return True
     return False
+
 
 def is_near_player(i, j, distance):
     for di in range(-distance, distance + 1):
@@ -34,7 +35,8 @@ def is_near_player(i, j, distance):
             if is_same_as_player(new_i, new_j):
                 return True
     return False
-    
+
+
 def players_position():
     above_minus_below = 0
     left_minus_right = 0
@@ -48,8 +50,7 @@ def players_position():
         elif players[player_index]["i"] < my_i:
             left_minus_right += 1
     return (above_minus_below, left_minus_right)
- 
-    
+
 
 def is_valid_tile(i, j):
     if in_grid(i, j):
@@ -60,10 +61,10 @@ def is_valid_tile(i, j):
     return False
 
 
-def count_valid_neighbors(i, j, memory = []):
+def count_valid_neighbors(i, j, memory=[]):
     count = 0
-    for di in range(-move_dist, move_dist+1):
-        for dj in range(-move_dist, move_dist+1):
+    for di in range(-move_dist, move_dist + 1):
+        for dj in range(-move_dist, move_dist + 1):
             new_i = i + di
             new_j = j + dj
 
@@ -87,13 +88,18 @@ def total_safe_layers(i, j, layers, initial_layers, path=[], memory=[]):
             new_i = i + di
             new_j = j + dj
             if is_valid_tile(new_i, new_j):
-                if count_valid_neighbors(new_i, new_j, path) > 0 and (new_i, new_j) not in path and not is_near_player(new_i, new_j, 2):
+                if (
+                    count_valid_neighbors(new_i, new_j, path) > 0
+                    and (new_i, new_j) not in path
+                    and not is_near_player(new_i, new_j, 2)
+                ):
                     # print("Checking layer", layer, new_i,
                     #     new_j, "and excluding:", memory, file=sys.stderr)
                     path_copy = [i for i in path]
                     path_copy.append((new_i, new_j))
                     temp_layer = total_safe_layers(
-                        new_i, new_j, layers - 1, initial_layers, path_copy, memory)
+                        new_i, new_j, layers - 1, initial_layers, path_copy, memory
+                    )
                     memory.append(temp_layer)
                     if temp_layer[0] > layer[0]:
                         layer = temp_layer
@@ -125,7 +131,7 @@ def get_move(num_layers):
         dj_list = (-2, -1, 0, 1, 2)
     else:
         dj_list = (0, -1, 1, -2, 2)
-    #if count_valid_neighbors(my_i, my_j) <= 2:
+    # if count_valid_neighbors(my_i, my_j) <= 2:
     #    di_list = (2, -2, 1, -1, 0)
     #    dj_list = (-2, 2, -1, 1, 0)
     for di in di_list:
@@ -134,7 +140,14 @@ def get_move(num_layers):
             new_j = my_j + dj
             if is_valid_tile(new_i, new_j):
                 moves.append(
-                    (new_i, new_j, total_safe_layers(new_i, new_j, layers=num_layers, initial_layers=num_layers)))
+                    (
+                        new_i,
+                        new_j,
+                        total_safe_layers(
+                            new_i, new_j, layers=num_layers, initial_layers=num_layers
+                        ),
+                    )
+                )
 
     if len(moves) == 0:
         return (my_i, my_j)
@@ -143,10 +156,12 @@ def get_move(num_layers):
         for move in moves:
             if move[2][0] == layers:
                 best_moves.append(move)
-    #print(best_move, file=sys.stderr)
+    # print(best_move, file=sys.stderr)
     best_move = best_moves[0]
     for move in best_moves:
-        if count_valid_neighbors(move[2][1], move[2][2]) > count_valid_neighbors(best_move[2][1], best_move[2][2]):
+        if count_valid_neighbors(move[2][1], move[2][2]) > count_valid_neighbors(
+            best_move[2][1], best_move[2][2]
+        ):
             best_move = move
     return best_move
 
@@ -182,5 +197,5 @@ while True:
     # print(total_safe_layers(my_i, my_j, 3, 3), file=sys.stderr)
 
     move = get_move(num_layers=10)
-    #print(move, file=sys.stderr)
+    # print(move, file=sys.stderr)
     output(move[0], move[1])

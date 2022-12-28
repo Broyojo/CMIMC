@@ -1,6 +1,6 @@
-import sys
 import json
 import random
+import sys
 
 ### Global Variables ###
 
@@ -35,6 +35,7 @@ def drone_output(col, moves):
 def debug_print(*args):
     print(*args, file=sys.stderr)
 
+
 def str_dir(dir):
     if dir == UP:
         return "UP"
@@ -47,7 +48,7 @@ def str_dir(dir):
 
 
 def is_valid(i, j):
-    return 0 <= i <= BOARD_SIZE-1 and 0 <= j <= BOARD_SIZE-1 and AIRSPACE[i][j] == 0
+    return 0 <= i <= BOARD_SIZE - 1 and 0 <= j <= BOARD_SIZE - 1 and AIRSPACE[i][j] == 0
 
 
 def valid_starting_cols():

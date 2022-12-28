@@ -5,26 +5,28 @@ from math import *
 from sys import stderr
 
 # INPUT FORMAT (initial, ONLY HAPPENS ONCE):
-'''
+"""
     "layout": A 2D (64x64) list of 0, 1, or 2, describing the grid layout,
         where 0 is a floor, 1 is a wall, and 2 is the target destination.
         Can be indexed via layout[i][j].
-'''
+"""
 # INPUT FORMAT (per turn):
-'''
+"""
     "view": A 2D (3x3) list of 0, 1, or 2, describing the area immediately
         around the robot, oriented in the direction the robot is facing.
         Can be indexed via view[i][j].
-'''
+"""
 # OUTPUT FORMAT (per turn):
-'''
+"""
     "move": one of "forward", "backward", "left", "right", "apparate"
-'''
+"""
+
 
 def is_valid_location(pos):
     if pos[0] >= 0 and pos[1] >= 0 and pos[0] < 64 and pos[1] < 64:
         return layout[pos[0]][pos[1]] != 1
     return False
+
 
 def neighbors(pos):
     return [
@@ -33,6 +35,7 @@ def neighbors(pos):
         (pos[0] + 1, pos[1]),
         (pos[0], pos[1] + 1),
     ]
+
 
 def compute_paths(goal):
     paths = {}
@@ -60,7 +63,7 @@ def compute_paths(goal):
                         if e > n:
                             e.set_parent(next_node)
                         break
-    
+
     for node in visited:
         if node.parent != None:
             paths[str((node.pos[0], node.pos[1]))] = node.parent.pos
@@ -68,6 +71,7 @@ def compute_paths(goal):
             paths[str((node.pos[0], node.pos[1]))] = None
 
     return paths
+
 
 class DijkstraNode:
     pos = (0, 0)
@@ -87,7 +91,10 @@ class DijkstraNode:
         self.set_cost()
 
     def set_cost(self):
-        step_cost = sqrt((self.pos[0]-self.parent.pos[0])**2 + (self.pos[1]-self.parent.pos[1])**2)
+        step_cost = sqrt(
+            (self.pos[0] - self.parent.pos[0]) ** 2
+            + (self.pos[1] - self.parent.pos[1]) ** 2
+        )
         self.cost = self.parent.cost + step_cost
 
     def __eq__(self, other) -> bool:
@@ -115,8 +122,10 @@ class DijkstraNode:
     def __hash__(self):
         return hash(self.pos)
 
+
 def output(move):
     print(json.dumps({"move": move}))
+
 
 _data = json.loads(input())
 layout = _data["layout"]
@@ -125,31 +134,33 @@ possible_start_positions = []
 for i in range(64):
     for j in range(64):
         for rot in range(4):
-            possible_start_positions.append((i,j,rot))
+            possible_start_positions.append((i, j, rot))
 
 pos = None
 
+
 def is_position_valid(pos, view):
-    for di in range(-1,2):
-        for dj in range(-1,2):
-            if rot == 0 and layout[pos[0] + di][pos[1] + dj] != view[1+di][1+dj]:
+    for di in range(-1, 2):
+        for dj in range(-1, 2):
+            if rot == 0 and layout[pos[0] + di][pos[1] + dj] != view[1 + di][1 + dj]:
                 return False
-            elif rot == 1 and layout[pos[0] + di][pos[1] + dj] != view[1+dj][1-di]:
+            elif rot == 1 and layout[pos[0] + di][pos[1] + dj] != view[1 + dj][1 - di]:
                 return False
-            elif rot == 2 and layout[pos[0] + di][pos[1] + dj] != view[1-di][1-dj]:
+            elif rot == 2 and layout[pos[0] + di][pos[1] + dj] != view[1 - di][1 - dj]:
                 return False
-            elif rot == 3 and layout[pos[0] + di][pos[1] + dj] != view[1-dj][1+di]:
+            elif rot == 3 and layout[pos[0] + di][pos[1] + dj] != view[1 - dj][1 + di]:
                 return False
     return True
 
-net_movement = [0,0]
+
+net_movement = [0, 0]
 net_rotation = 0
 
 goal = None
 for i in range(64):
     for j in range(64):
         if layout[i][j] == 2:
-            goal = (i,j)
+            goal = (i, j)
 
 paths = compute_paths(goal)
 # print(paths, file=stderr)
@@ -158,6 +169,7 @@ paths = compute_paths(goal)
 pos = None
 rot = None
 step_i = 0
+
 
 def move(dir):
     global net_movement, net_rotation
@@ -181,6 +193,7 @@ def move(dir):
             net_movement[0] += -1
     output(["forward", "right", "backward", "left"][dir])
 
+
 while True:
     _data = json.loads(input())
     view = _data["view"]
@@ -203,22 +216,22 @@ while True:
             elif net_rotation == 3:
                 adjusted[0] += -net_movement[1]
                 adjusted[1] += net_movement[0]
-            
+
             adjusted[2] = (adjusted[2] + net_rotation) % 4
 
             if not is_position_valid(adjusted, view):
                 possible_start_positions.pop(pos_i)
                 pos_i -= 1
-            
+
             if len(possible_start_positions) == 1:
                 pos = (adjusted[0], adjusted[1])
                 rot = adjusted[2]
-            
+
             pos_i += 1
-        
-        dir = random.randint(0,3)
+
+        dir = random.randint(0, 3)
         move(dir)
-    
+
     else:
         path = paths[str(pos)]
         if step_i == len(path):
