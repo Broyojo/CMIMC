@@ -33,8 +33,7 @@ def drone_output(col, moves):
 
 
 def debug_print(*args):
-    print(*args, file="file.txt")
-
+    print(*args, file=sys.stderr)
 
 def str_dir(dir):
     if dir == UP:
